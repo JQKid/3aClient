@@ -1,0 +1,39 @@
+{
+  "name": "3A",
+  "version": "1.0.0",
+  "description": "连接3A网站作为行情数据源，连接本地交易客户端作为交易终端",
+  "main": "main.js",
+  "repository": "https://github.com/JQKid/3A",
+  "keywords": [
+    "3A",
+    "AAA",
+    "网格",
+    "策略",
+    "回测",
+    "测试",
+    "交易"
+  ],
+  "author": "JQK",
+  "license": "MIT",
+  "scripts": {
+    "postinstall": "install-app-deps",
+    "start": "electron resources/app",
+    "package": "build --dir",
+    "release": "build"
+  },
+  "build": {
+    "asar": false,
+    "extraFiles":["*.md", "build/*", {"from":"package.json", "to":"package.json"}],
+    "compression":"maximum",
+    "win": {
+      "target": "7z"
+    }
+  },
+  "directories": {
+    "app": "resources/app"
+  },
+  "devDependencies": {
+    "electron": "1.4.5",
+    "electron-builder": "next"
+  }
+}

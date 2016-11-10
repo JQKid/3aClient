@@ -1,0 +1,11 @@
+{
+  "name": "3A",
+  "version": "1.0.0",
+  "description": "连接3A网站作为行情数据源，连接本地交易客户端作为交易终端",
+  "main": "main.js",
+  "author": "JQK",
+  "dependencies": {
+    "faye-websocket": "^0.11.0",
+    "iconv-lite": "^0.4.13"
+  }
+}
