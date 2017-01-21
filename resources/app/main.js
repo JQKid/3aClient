@@ -1,14 +1,15 @@
-﻿const {
+﻿const config = require('./config').main
+const {
     app,
     BrowserWindow,
     Menu,
     dialog,
     ipcMain
 } = require('electron')
-
 const path = require('path')
 const url = require('url')
 const TradeProxy = require('./trade/TradeProxy')
+const notify = require('./notify/notify')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -29,7 +30,7 @@ function createWindow() {
 
     // and load the index.html of the app.
     mainWindow.loadURL(url.format({
-        pathname: "www.aaa-aaa.cn",
+        pathname: config.mainPage,
         protocol: 'http:',
         slashes: true
     }))
@@ -49,6 +50,7 @@ function createWindow() {
 
     ipcMain.on('aaa-menus', (event, arg) => {
         createMenu(arg)
+        event.returnValue = config.loadPolicy ? require('./util/FileUtil').readAll(path.join(__dirname, 'policy'), '.js') : ''
     })
 }
 
@@ -99,6 +101,36 @@ function createMenu(views) {
             accelerator: process.platform === 'darwin' ? 'Alt+Command+H' : 'Ctrl+Shift+H',
             click(item, focusedWindow) {
                 TradeProxy.processor.setVisible(false)
+            }
+        }, {
+            type: 'separator'
+        }, {
+            label:'显示提醒',
+            type:'checkbox',
+            checked:notify.config.showMessage,
+            click(item, focusedWindow) {
+                notify.config.showMessage = !notify.config.showMessage
+            }
+        }, {
+            label:'播放声音',
+            type:'checkbox',
+            checked:notify.config.playSound,
+            click(item, focusedWindow) {
+                notify.config.playSound = !notify.config.playSound
+            }
+        }, {
+            label:'自动交易',
+            type:'checkbox',
+            checked:notify.config.autoTrade,
+            click(item, focusedWindow) {
+                notify.config.autoTrade = !notify.config.autoTrade
+            }
+        }, {
+            label:'下单确认',
+            type:'checkbox',
+            checked:notify.config.confirm,
+            click(item, focusedWindow) {
+                notify.config.confirm = !notify.config.confirm
             }
         }, {
             type: 'separator'

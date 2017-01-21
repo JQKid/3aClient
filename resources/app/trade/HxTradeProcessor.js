@@ -1,16 +1,9 @@
 /**
  * 华泰核新
  */
-const config = {
-	autoit:'C:\\AutoIt3\\AutoIt3_x64.exe',//autoit路径
-	xiadan:'C:\\htzqzyb2\\xiadan.exe',//下单软件路径
-	username:'******',//客户号
-	pass:'******',//密码
-	verify:'******',//通信密码
-	script:'resources/app/script/hx'//脚本路径
-}
+const config = require('../config').HxTradeProcessor
+const iconv = require('iconv-lite')
 
-let iconv = require('iconv-lite')
 function getCmdPath(cmd, ...args) {
 	let path = `${config.autoit} ${config.script}/${cmd}.au3`
 	args.forEach((arg) => path += ' ' + (typeof arg == 'number' ? arg : `\"${arg}\"`))
@@ -20,7 +13,7 @@ function exec(cmd, errcb, succb) {
 	console.log('exec cmd:' + cmd)
 	require('child_process').exec(cmd, {encoding:'binary'}, function(e, stdout, stderr) {
 		if (e) {
-			console.log('exec failed:' + e)
+			console.error('exec failed:' + e)
 			errcb(e)
 		} else {
 			let out = iconv.decode(new Buffer(stdout, 'binary'), 'cp936')
@@ -46,6 +39,13 @@ function parse(datas, columnMap, convertMap) {
 	})
 	return results
 }
+function parseNo(str) {
+	let begin = str.indexOf('：')
+	let end = str.indexOf('。')
+	if (begin >= 0 && end >= 0) {
+		return str.substring(begin + 1, end)
+	}
+}
 
 module.exports = {
 	login(params, errcb, succb) {
@@ -70,7 +70,7 @@ module.exports = {
 					'成交数量':{id:'NUM', type:'num'},
 					'发生金额':{id:'VALUE', type:'dbl'},
 					'手续费':{id:'YONGJIN', type:'dbl'},
-					'印花说':{id:'YINHUA', type:'dbl'},
+					'印花税':{id:'YINHUA', type:'dbl'},
 					'股东账户':{id:'ZHANGHU'}
 				}
 				const typeMap = {'证券买入':'买入', '证券卖出':'卖出', '质押回购拆出':'融券回购', '拆出质押购回':'融券购回', '质押回购拆入':'融资回购', '拆入质押购回':'融资购回'}
@@ -132,10 +132,10 @@ module.exports = {
 		})
 	},
 	buy(params, errcb, succb) {
-		exec(getCmdPath('buy', params.code, params.price, params.num), errcb, (out) => (out && out.indexOf('成功') >= 0) ? succb('买入下单成功') : errcb(out))
+		exec(getCmdPath('buy', params.code, params.price, params.num), errcb, (out) => (out && out.indexOf('成功') >= 0) ? succb('买入下单成功', parseNo(out)) : errcb(out))
  	},
  	sell(params, errcb, succb) {
-		exec(getCmdPath('sell', params.code, params.price, params.num), errcb, (out) => (out && out.indexOf('成功') >= 0) ? succb('卖出下单成功') : errcb(out))
+		exec(getCmdPath('sell', params.code, params.price, params.num), errcb, (out) => (out && out.indexOf('成功') >= 0) ? succb('卖出下单成功', parseNo(out)) : errcb(out))
  	},
  	exchange(params, errcb, succb) {
  		exec(getCmdPath('exchange', params.buyCode, params.buyPrice, params.buyNum, params.sellCode, params.sellPrice, params.sellNum), errcb, (out) => (out && out.indexOf('成功') >= 0) ? succb('买卖下单成功') : errcb(out))
